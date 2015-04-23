@@ -57,13 +57,10 @@ app.directive('popMessage', function($timeout, $window) {
             pos: '=?'
         },
         link: function(scope, element, attr) {
-
-
-
             scope.popClass = attr.pos || 'bottom-right';
             scope.showTime = attr.show || 3000;
             scope.bg = {'background': (attr.bg || 'lightgray'), 'opacity': (attr.alpha || '0.5')};
-            scope.txt = {'color': (attr.txt || 'black   ')};
+            scope.txt = {'color': (attr.txt || 'black')};
             var popMsg = function(msg) {
                 console.log($window.innerWidth, $window.innerHeight)
                 scope.msg = msg;
