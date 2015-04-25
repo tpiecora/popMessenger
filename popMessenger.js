@@ -57,57 +57,93 @@ app.directive('popMessageChild', function($timeout, $compile) {
             alpha: '=?',
             anim: '=?',
             bg: '=?',
-            pos: '=?',
+            //pos: '@?',
             show: '=?',
             txtCol: '=?'
         },
         link: function(scope, element, attr) {
             scope.style = {
-                animation: ''
-                bgColor: attr.bg,
-                index: '',
-                id: '#popMsg' + attr.idx,
-                opacity: attr.alpha,
+                animation: '',
+                bgColor: '',
+                index: attr.idx,
+                id: 'popMsg' + attr.idx,
+                msg: attr.msg,
+                opacity: attr.alpha || 0.7,
                 position: attr.pos,
-                posStyle: '',
-                posStyleVal: '',
+                posHStyle: '',
+                posVStyle: '',
+                posVVal: '',
                 posHideVal: '',
-                showTime: attr.show,
-                txtColor: attr.txtCol,
+                show: true,
+                showTime: attr.show || 5000,
+                txtColor: '',
                 styles: ''
 
             };
             var s = scope.style;
-            if(attr.anim === 'vslide') {
-                 s = '{{style.id}}.ng-hide {{{style.posStyle}}: {{style.posStyleVal}}px; opacity: {{style.opacity}}; transition: 0.75s ease-in all;}' +
-                '{{.ng-hide-add-active {transition: 0.75s ease-in all; transform: translate(0, -15px); } ' +
-                '.top-left.ng-hide-remove.ng-hide-remove-active {transition: 0.75s ease-out all; }'
-            }
-            scope.msg = attr.msg;
-            scope.popClass = attr.pos || 'bottom-right';
 
-            console.log(attr.idx);
-            //scope.style.posVal = '200';
-            scope.style.bg = attr.bg || 'lightgray';
-            scope.style.opacity = attr.alpha || '0.5';
-            scope.style.posVal = (parseInt(attr.idx) * 35) + 15 + 'px';
-           /* if (scope.popClass === 'bottom-right' || scope.popClass === 'bottom-left') {
-                scope.bg = {'background': (attr.bg || 'lightgray'), 'opacity': (attr.alpha || '0.5'), 'bottom': posVal};
-            }
-            if (scope.popClass === 'top-right' || scope.popClass === 'top-left') {
-                scope.bg = {'background': (attr.bg || 'lightgray')};
-            }*/
 
-            scope.showTime = attr.show || 15000;
-            console.log(scope.bg);
-            scope.txt = {'color': (attr.txt || 'black')};
-                scope.show = true;
+            s.bgColor = 'background: ' + (attr.bg || 'lightgray') + ';';
+
+
+            //scope.style.posVStyle
+            switch (attr.pos) {
+                case 'top-left' || 'top-right' || 'top':
+                    s.posVStyle = 'top';
+                    break;
+                case 'bottom-left' || 'bottom-right' || 'bottom':
+                    s.posVStyle = 'bottom';
+                    break;
+                default:
+                    s.posVStyle = 'bottom';
+            }
+
+            //scope.style.posHStyle
+            switch (attr.pos) {
+                case 'top-left' || 'bottom-left':
+                    s.posHStyle = 'left';
+                    break;
+                case 'top-right' || 'bottom-right':
+                    s.posHStyle = 'right';
+                default:
+                    s.posHStyle = 'right';
+            }
+            s.posVVal = (parseInt(attr.idx) * 35) + 15;
+
+            s.posHideVal = s.posVVal - 40;
+
+            s.position = attr.pos || 'bottom-right';
+
+            s.txtColor = 'color: ' + (attr.txtCol || 'black') + ';';
+
+            if(!attr.anim || attr.anim === 'vslide') {
+                s.animation =
+                    '#' + s.id + ' {' + s.posHStyle + ': 15px; ' + s.posVStyle + ': ' + s.posVVal + 'px; ' +
+                    'opacity: ' + s.opacity + ';} ' +
+                    '#' + s.id + '.ng-hide-add.ng-hide-add-active {transition: 0.75s ease-in all; }' +//transform: translate(0, ' + s.posHideVal + 'px); } ' +
+                    '#' + s.id + '.ng-hide-remove.ng-hide-remove-active {transition: all linear 0.5s; !important}' +//transform: translate(0, ' + s.posVVal + 'px); } ';
+                    '#' + s.id + '.ng-hide {' + s.posVStyle + ': ' + s.posHideVal + 'px; opacity: 0;} '
+            }
+
+            s.styles = s.animation + ' #' + s.id + ' {position: absolute; ' +
+            'height: 30px; width: auto;  text-align: center; border-radius: 5px;' +
+            'line-height: 30px; ' + s.bgColor + '}' +
+            '#pop-msg {padding: 10px; font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;' +
+            'vertical-align: middle; margin: auto auto; ' + s.txtColor + '}';
+            scope.hide = true;
+            scope.animateHelper = '{top: -100; !important}';
             $timeout(function() {
-                scope.show = false;
+                scope.hide = false;
+            scope.$apply();
+            },0);
+            scope.animateHelper = '';
+            console.log(s);
+            $timeout(function() {
+                scope.hide = true;
                 $timeout(function () {
                     killMe();
                 }, 750);
-            },scope.showTime);
+            }, s.showTime);
 
             var killMe = function () {
                 element.remove();
@@ -115,47 +151,11 @@ app.directive('popMessageChild', function($timeout, $compile) {
 
         },
         template:
-        '<style>' +
-        '.top-left {opacity: {{style.opacity}}; left: 15px; top: {{style.posVal}} } ' +
-        '.top-left.ng-hide {top: -15px; opacity: 0; transition: opacity 0.75s ease-in all;}' +
-        '.top-left.ng-hide-add-active {transition: 0.75s ease-in all; transform: translate(0, -15px); } ' +
-        '.top-left.ng-hide-remove.ng-hide-remove-active {transition: 0.75s ease-out all; }' +
+        '<style> {{style.styles}}' +
 
-        '.top-right { right: 15px;} ' +
-        '.top-right.ng-hide {top: -15px; opacity: 0; transition: 0.75s ease-in all;}' +
-        '.top-right.ng-hide-add-active {transition: 0.75s ease-in all; transform: translate(0, -25px); } ' +
-        '.top-right.ng-hide-remove.ng-hide-remove-active {transition: 0.75s ease-out all; }' +
-
-        '.bottom-left { left: 15px;} ' +
-        '.bottom-left.ng-hide {bottom: -25px; opacity: 0; transition: 0.75s ease-in all;}' +
-        '.bottom-left.ng-hide-add-active {transition: 0.75s ease-in all; transform: translate(0, -25px); } ' +
-        '.bottom-left.ng-hide-remove.ng-hide-remove-active {transition: 0.75s ease-out all; }' +
-
-        '.bottom-right { right: 15px;   } ' +
-        '.bottom-right.ng-hide {bottom: -25px; opacity: 0; transition: 0.75s ease-in all;}' +
-        '.bottom-right.ng-hide-add-active {transition: 0.75s ease-in all; transform: translate(0, -25px); } ' +
-        '.bottom-right.ng-hide-remove.ng-hide-remove-active {transition: 0.75s ease-out all; }' +
-
-
-        '#pop-body {position: absolute;' +
-        'height: 30px; width: auto;  text-align: center; border-radius: 5px;' +
-        'line-height: 30px; background: {{style.bg}}}' +
-        '#pop-msg {padding: 10px; font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;' +
-        'vertical-align: middle; margin: auto auto; }' +
-
-
-        '#pop-body.bottom { left: 0; width: 100%; bottom: 0px; border-radius: 0;}' +
-        '#pop-body.bottom.ng-hide {bottom: -25px; opacity: 0; transition: 0.75s ease-in all;}' +
-        '#pop-body.bottom.ng-hide-add-active {transition: 0.75s ease-in-out all;' +
-        'transform: translate(0, -15px); } #pop-body.bottom.ng-hide-remove.ng-hide-remove-active {transition: 0.75s ease-out all; }' +
-
-        '#pop-body.top { left: 0; width: 100%; top: 0px; border-radius: 0;}' +
-        '#pop-body.top.ng-hide {top: -25px; opacity: 0; transition: 0.75s ease-in all;}' +
-        '#pop-body.top.ng-hide-add-active {transition: 0.75s ease-in-out all;' +
-        'transform: translate(0, -15px); } #pop-body.top.ng-hide-remove.ng-hide-remove-active {transition: 0.75s ease-out all; }' +
 
         '</style>' +
-        '<div ng-class="popClass" ng-style="bg" ng-show="show" id="pop-body"><span id="pop-msg" ng-style="txt">{{msg}}</span></div>'
+        '<div ng-style="animateHelper" ng-hide="hide" id="{{style.id}}"><span id="pop-msg" >{{style.msg}}</span></div>'
     }
 });
 
@@ -203,7 +203,7 @@ app.directive('popMessage', function($timeout, $window, $compile, $rootScope) {
                         count++;
                     }
                 }
-                var pmc = $compile('<pop-message-child ' + scope.bg + ' ' + scope.childPos + ' idx="' + count + '" msg="' + msg + '"></pop-message-child>')(newScope);
+                var pmc = $compile('<pop-message-child pos="' + attr.pos + '" ' + scope.bg + ' idx="' + count + '" msg="' + msg + '"></pop-message-child>')(newScope);
                 x.append(pmc);
             };
 
