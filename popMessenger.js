@@ -2,41 +2,41 @@
  * Created by michaelpiecora on 4/24/15.
  */
 /*
-    Dependencies:
-        ngAnimate
+ Dependencies:
+ ngAnimate
 
-    Setup:
-        Add 'PopMessenger' as a dependency in your app.
-        Add 'popMsg' as a dependency in your controller.
+ Setup:
+ Add 'PopMessenger' as a dependency in your app.
+ Add 'popMsg' as a dependency in your controller.
 
-    To Use:
-        Insert the directive '<pop-message pos="*position*" show="#></pop-message> into your HTML.
-        In your controller, call 'popMsg(msg)' to display a message.
+ To Use:
+ Insert the directive '<pop-message pos="*position*" show="#></pop-message> into your HTML.
+ In your controller, call 'popMsg(msg)' to display a message.
 
-    Config:
-        The <pop-message> directive can be configured through the following attributes:
-            pos: position in the window where you want messages to display.
-                'top-left': pill-style, width: auto, 15px margins
-                'top-right': pill-style, width: auto, 15px margins
-                'bottom-left': pill-style, width: auto, 15px margins
-                'bottom-right': pill-style, width: auto, 15px margins
-                'top': 100% width, no margins
-                'bottom': 100% width, no margins
-                Default: bottom-right
+ Config:
+ The <pop-message> directive can be configured through the following attributes:
+ pos: position in the window where you want messages to display.
+ 'top-left': pill-style, width: auto, 15px margins
+ 'top-right': pill-style, width: auto, 15px margins
+ 'bottom-left': pill-style, width: auto, 15px margins
+ 'bottom-right': pill-style, width: auto, 15px margins
+ 'top': 100% width, no margins
+ 'bottom': 100% width, no margins
+ Default: bottom-right
 
-            show: the time in ms you want messages to display
-                Default: 3000
+ show: the time in ms you want messages to display
+ Default: 3000
 
-            bg: the background color of the message box.  Accepts all standard CSS color designators:
-                #444, #00FF00, rgb(100, 100, 100), lightblue, etc.
-                Default: lightgray
+ bg: the background color of the message box.  Accepts all standard CSS color designators:
+ #444, #00FF00, rgb(100, 100, 100), lightblue, etc.
+ Default: lightgray
 
-            txt: the color of the message text.  Accepts the same parameters as bg.
-                Default: black
+ txt: the color of the message text.  Accepts the same parameters as bg.
+ Default: black
 
-            alpha: the opacity of the message box and message text.  Accepts 0 through 1:
-                30% = 0.3, 100% = 1, 80% = 0.8
-                Default: 0.5
+ alpha: the opacity of the message box and message text.  Accepts 0 through 1:
+ 30% = 0.3, 100% = 1, 80% = 0.8
+ Default: 0.5
 
 
  */
@@ -50,34 +50,46 @@ app.controller('MainCtrl', function($scope, popMsg) {
     };
 });
 
-app.directive('popMessage', function($timeout, $window) {
+app.directive('popMessageChild', function($timeout) {
     return {
         restrict: 'E',
         scope: {
-            pos: '=?'
+            pos: '=?',
+            msg: '=',
+            idx: '@'
         },
         link: function(scope, element, attr) {
+            scope.msg = attr.msg;
             scope.popClass = attr.pos || 'bottom-right';
+            console.log(attr.idx);
+            var posKey, posVal;
+            if (scope.popClass === 'bottom-right' || scope.popClass === 'bottom-left') {
+                posKey = 'bottom';
+                posVal = (parseInt(attr.idx) * 35) + 15 + 'px';
+            }
+            if (scope.popClass === 'top-right' || scope.popClass === 'top-left') {
+                posKey = 'top';
+                posVal = parseInt(attr.idx) + 'px'
+            }
+
+
             scope.showTime = attr.show || 3000;
-            scope.bg = {'background': (attr.bg || 'lightgray'), 'opacity': (attr.alpha || '0.5')};
+            scope.bg = {'background': (attr.bg || 'lightgray'), 'opacity': (attr.alpha || '0.5'), 'bottom': posVal};
+            console.log(scope.bg);
             scope.txt = {'color': (attr.txt || 'black')};
-            var popMsg = function(msg) {
-                console.log($window.innerWidth, $window.innerHeight)
-                scope.msg = msg;
-                scope.show = true;
-                console.log(scope.msg);
-                $timeout(function(){
-                    scope.show = false;
-                    $timeout(function() {
-                        scope.msg = '';
-                    },750)
-                },scope.showTime);
+
+            scope.show = true;
+            $timeout(function() {
+                scope.show = false;
+                $timeout(function () {
+                    killMe();
+                }, 750);
+            },scope.showTime);
+
+            var killMe = function () {
+                element.remove();
             };
 
-            scope.$on('popMsg', function(event, msg) {
-                console.log('receiving: ' + msg);
-                popMsg(msg);
-            })
         },
         template:
         '<style>' +
@@ -119,14 +131,78 @@ app.directive('popMessage', function($timeout, $window) {
         '#pop-body.top.ng-hide-add-active {transition: 0.75s ease-in-out all;' +
         'transform: translate(0, -15px); } #pop-body.top.ng-hide-remove.ng-hide-remove-active {transition: 0.75s ease-out all; }' +
 
-
         '</style>' +
         '<div ng-class="popClass" ng-style="bg" ng-show="show" id="pop-body"><span id="pop-msg" ng-style="txt">{{msg}}</span></div>'
     }
 });
 
-app.service('popMsg', function($rootScope) {
+app.directive('popMessage', function($timeout, $window, $compile, $rootScope) {
+    return {
+        restrict: 'E',
+        scope: {
+            pos: '=?'
+        },
+        link: function (scope, element, attr) {
+
+            var popMsg = function (msg) {
+                scope.show = true;
+
+                var newScope = $rootScope.$new(),
+                    count = 0,
+                    x = angular.element(document.querySelector('pop-message')),
+                    y = angular.element(document.querySelector('pop-message-child')),
+                    z = y.next();
+
+                if(y[0]) {
+                    var indexes = [], i;
+                    indexes.push(y.attr('idx'));
+                    for (i = 0; i < 6; i++) {
+                        if (z[0]) {
+                            indexes.push(z.attr('idx'));
+                            z = z.next();
+                        }
+                    }
+                    indexes.sort(function (a, b) {
+                        return a - b
+                    });
+                    for (i = 0; i < indexes.length; i++) {
+                        if (indexes[i] != i) {
+                            count = i;
+                            break;
+                        }
+                        count++;
+                    }
+                }
+                var pmc = $compile('<pop-message-child idx="' + count + '" msg="' + msg + '"></pop-message-child>')(newScope);
+                x.append(pmc);
+            };
+
+            //watch for incoming messages
+            scope.$on('popMsg', function (event, msg) {
+                console.log('receiving: ' + msg);
+                popMsg(msg);
+            })
+        }
+    }
+});
+
+app.factory('popMsg', function($rootScope, $injector, $compile) {
     return function (msg){
         $rootScope.$broadcast('popMsg', msg);
+        /*return function getContainer () {
+         var x = angular.element(document.querySelector('div'));
+         //x.append('<p>I am appended</p>');
+
+         var scope = $rootScope.$new();
+         var angularDomEl = angular.element('trest');
+
+
+         console.log(x);
+         //return x
+         return $compile(angularDomEl)(scope)    ;
+         }
+         */
+
     }
+
 });
