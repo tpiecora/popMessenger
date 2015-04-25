@@ -50,35 +50,58 @@ app.controller('MainCtrl', function($scope, popMsg) {
     };
 });
 
-app.directive('popMessageChild', function($timeout) {
+app.directive('popMessageChild', function($timeout, $compile) {
     return {
         restrict: 'E',
         scope: {
+            alpha: '=?',
+            anim: '=?',
+            bg: '=?',
             pos: '=?',
-            msg: '=',
-            idx: '@'
+            show: '=?',
+            txtCol: '=?'
         },
         link: function(scope, element, attr) {
+            scope.style = {
+                animation: ''
+                bgColor: attr.bg,
+                index: '',
+                id: '#popMsg' + attr.idx,
+                opacity: attr.alpha,
+                position: attr.pos,
+                posStyle: '',
+                posStyleVal: '',
+                posHideVal: '',
+                showTime: attr.show,
+                txtColor: attr.txtCol,
+                styles: ''
+
+            };
+            var s = scope.style;
+            if(attr.anim === 'vslide') {
+                 s = '{{style.id}}.ng-hide {{{style.posStyle}}: {{style.posStyleVal}}px; opacity: {{style.opacity}}; transition: 0.75s ease-in all;}' +
+                '{{.ng-hide-add-active {transition: 0.75s ease-in all; transform: translate(0, -15px); } ' +
+                '.top-left.ng-hide-remove.ng-hide-remove-active {transition: 0.75s ease-out all; }'
+            }
             scope.msg = attr.msg;
             scope.popClass = attr.pos || 'bottom-right';
+
             console.log(attr.idx);
-            var posKey, posVal;
-            if (scope.popClass === 'bottom-right' || scope.popClass === 'bottom-left') {
-                posKey = 'bottom';
-                posVal = (parseInt(attr.idx) * 35) + 15 + 'px';
+            //scope.style.posVal = '200';
+            scope.style.bg = attr.bg || 'lightgray';
+            scope.style.opacity = attr.alpha || '0.5';
+            scope.style.posVal = (parseInt(attr.idx) * 35) + 15 + 'px';
+           /* if (scope.popClass === 'bottom-right' || scope.popClass === 'bottom-left') {
+                scope.bg = {'background': (attr.bg || 'lightgray'), 'opacity': (attr.alpha || '0.5'), 'bottom': posVal};
             }
             if (scope.popClass === 'top-right' || scope.popClass === 'top-left') {
-                posKey = 'top';
-                posVal = parseInt(attr.idx) + 'px'
-            }
+                scope.bg = {'background': (attr.bg || 'lightgray')};
+            }*/
 
-
-            scope.showTime = attr.show || 3000;
-            scope.bg = {'background': (attr.bg || 'lightgray'), 'opacity': (attr.alpha || '0.5'), 'bottom': posVal};
+            scope.showTime = attr.show || 15000;
             console.log(scope.bg);
             scope.txt = {'color': (attr.txt || 'black')};
-
-            scope.show = true;
+                scope.show = true;
             $timeout(function() {
                 scope.show = false;
                 $timeout(function () {
@@ -93,22 +116,22 @@ app.directive('popMessageChild', function($timeout) {
         },
         template:
         '<style>' +
-        '.top-left { left: 15px; top: 15px;} ' +
-        '.top-left.ng-hide {top: -15px; opacity: 0; transition: 0.75s ease-in all;}' +
+        '.top-left {opacity: {{style.opacity}}; left: 15px; top: {{style.posVal}} } ' +
+        '.top-left.ng-hide {top: -15px; opacity: 0; transition: opacity 0.75s ease-in all;}' +
         '.top-left.ng-hide-add-active {transition: 0.75s ease-in all; transform: translate(0, -15px); } ' +
         '.top-left.ng-hide-remove.ng-hide-remove-active {transition: 0.75s ease-out all; }' +
 
-        '.top-right { right: 15px; top: 15px;} ' +
+        '.top-right { right: 15px;} ' +
         '.top-right.ng-hide {top: -15px; opacity: 0; transition: 0.75s ease-in all;}' +
         '.top-right.ng-hide-add-active {transition: 0.75s ease-in all; transform: translate(0, -25px); } ' +
         '.top-right.ng-hide-remove.ng-hide-remove-active {transition: 0.75s ease-out all; }' +
 
-        '.bottom-left { left: 15px; bottom: 15px;} ' +
+        '.bottom-left { left: 15px;} ' +
         '.bottom-left.ng-hide {bottom: -25px; opacity: 0; transition: 0.75s ease-in all;}' +
         '.bottom-left.ng-hide-add-active {transition: 0.75s ease-in all; transform: translate(0, -25px); } ' +
         '.bottom-left.ng-hide-remove.ng-hide-remove-active {transition: 0.75s ease-out all; }' +
 
-        '.bottom-right { right: 15px; bottom: 15px;} ' +
+        '.bottom-right { right: 15px;   } ' +
         '.bottom-right.ng-hide {bottom: -25px; opacity: 0; transition: 0.75s ease-in all;}' +
         '.bottom-right.ng-hide-add-active {transition: 0.75s ease-in all; transform: translate(0, -25px); } ' +
         '.bottom-right.ng-hide-remove.ng-hide-remove-active {transition: 0.75s ease-out all; }' +
@@ -116,7 +139,7 @@ app.directive('popMessageChild', function($timeout) {
 
         '#pop-body {position: absolute;' +
         'height: 30px; width: auto;  text-align: center; border-radius: 5px;' +
-        'line-height: 30px;}' +
+        'line-height: 30px; background: {{style.bg}}}' +
         '#pop-msg {padding: 10px; font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;' +
         'vertical-align: middle; margin: auto auto; }' +
 
@@ -147,6 +170,13 @@ app.directive('popMessage', function($timeout, $window, $compile, $rootScope) {
             var popMsg = function (msg) {
                 scope.show = true;
 
+                if (attr.pos) {
+                    scope.childPos = 'pos="' + attr.pos + '"';
+                }
+                if (attr.bg) {
+                    scope.bg = 'bg="' + attr.bg + '"';
+                }
+
                 var newScope = $rootScope.$new(),
                     count = 0,
                     x = angular.element(document.querySelector('pop-message')),
@@ -173,7 +203,7 @@ app.directive('popMessage', function($timeout, $window, $compile, $rootScope) {
                         count++;
                     }
                 }
-                var pmc = $compile('<pop-message-child idx="' + count + '" msg="' + msg + '"></pop-message-child>')(newScope);
+                var pmc = $compile('<pop-message-child ' + scope.bg + ' ' + scope.childPos + ' idx="' + count + '" msg="' + msg + '"></pop-message-child>')(newScope);
                 x.append(pmc);
             };
 
