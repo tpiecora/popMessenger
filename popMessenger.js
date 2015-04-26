@@ -57,7 +57,7 @@ app.directive('popMessageChild', function($timeout, $compile) {
             alpha: '=?',
             anim: '=?',
             bg: '=?',
-            //pos: '@?',
+            pos: '=?',
             show: '=?',
             txtCol: '=?'
         },
@@ -78,41 +78,48 @@ app.directive('popMessageChild', function($timeout, $compile) {
                 showTime: attr.show || 5000,
                 txtColor: '',
                 styles: ''
-
             };
-            var s = scope.style;
 
+            var s = scope.style;
 
             s.bgColor = 'background: ' + (attr.bg || 'lightgray') + ';';
 
+            s.position = attr.pos || 'bottom-right';
+            var posArr = s.position.split('-');
 
+            console.log(s.position, attr.pos);
+
+            s.posVStyle = posArr[0];
+            s.posHStyle = posArr[1];
+            /*
             //scope.style.posVStyle
-            switch (attr.pos) {
+            switch (posArr[0]) {
                 case 'top-left' || 'top-right' || 'top':
                     s.posVStyle = 'top';
                     break;
                 case 'bottom-left' || 'bottom-right' || 'bottom':
                     s.posVStyle = 'bottom';
                     break;
-                default:
-                    s.posVStyle = 'bottom';
+                //default:
+                //    s.posVStyle = 'bottom';
             }
 
             //scope.style.posHStyle
-            switch (attr.pos) {
+            switch (s.position.split('-'))) {
                 case 'top-left' || 'bottom-left':
                     s.posHStyle = 'left';
                     break;
                 case 'top-right' || 'bottom-right':
                     s.posHStyle = 'right';
-                default:
-                    s.posHStyle = 'right';
+                    break;
+                //default:
+                //    s.posHStyle = 'right';
             }
+            */
             s.posVVal = (parseInt(attr.idx) * 35) + 15;
 
             s.posHideVal = s.posVVal - 40;
 
-            s.position = attr.pos || 'bottom-right';
 
             s.txtColor = 'color: ' + (attr.txtCol || 'black') + ';';
 
@@ -120,26 +127,35 @@ app.directive('popMessageChild', function($timeout, $compile) {
                 s.animation =
                     '#' + s.id + ' {' + s.posHStyle + ': 15px; ' + s.posVStyle + ': ' + s.posVVal + 'px; ' +
                     'opacity: ' + s.opacity + ';} ' +
-                    '#' + s.id + '.ng-hide-add.ng-hide-add-active {transition: 0.75s ease-in all; }' +//transform: translate(0, ' + s.posHideVal + 'px); } ' +
-                    '#' + s.id + '.ng-hide-remove.ng-hide-remove-active {transition: all linear 0.5s; !important}' +//transform: translate(0, ' + s.posVVal + 'px); } ';
+                    '#' + s.id + '.ng-hide-add.ng-hide-add-active {transition: 0.75s ease-in all; }'
+                    '#' + s.id + '.ng-hide-remove.ng-hide-remove-active {transition: all linear 0.5s; !important}' +
                     '#' + s.id + '.ng-hide {' + s.posVStyle + ': ' + s.posHideVal + 'px; opacity: 0;} '
             }
 
+            if(!attr.anim || attr.anim === 'fade') {
+                s.animation =
+                    '#' + s.id + ' {' + s.posHStyle + ': 15px; ' + s.posVStyle + ': ' + s.posVVal + 'px; ' +
+                    'opacity: ' + s.opacity + ';} ' +
+                    '#' + s.id + '.ng-hide-add.ng-hide-add-active {transition: 0.75s ease-in all; }' +
+                    '#' + s.id + '.ng-hide-remove.ng-hide-remove-active {transition: all linear 0.5s; !important}' +
+                    '#' + s.id + '.ng-hide {opacity: 0;} '
+            }
             s.styles = s.animation + ' #' + s.id + ' {position: absolute; ' +
             'height: 30px; width: auto;  text-align: center; border-radius: 5px;' +
             'line-height: 30px; ' + s.bgColor + '}' +
             '#pop-msg {padding: 10px; font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;' +
             'vertical-align: middle; margin: auto auto; ' + s.txtColor + '}';
-            scope.hide = true;
+
+            scope.show = false;
             scope.animateHelper = '{top: -100; !important}';
             $timeout(function() {
-                scope.hide = false;
+                scope.show = true;
             scope.$apply();
             },0);
             scope.animateHelper = '';
             console.log(s);
             $timeout(function() {
-                scope.hide = true;
+                scope.show = false;
                 $timeout(function () {
                     killMe();
                 }, 750);
@@ -155,7 +171,7 @@ app.directive('popMessageChild', function($timeout, $compile) {
 
 
         '</style>' +
-        '<div ng-style="animateHelper" ng-hide="hide" id="{{style.id}}"><span id="pop-msg" >{{style.msg}}</span></div>'
+        '<div ng-style="animateHelper" ng-show="show" id="{{style.id}}"><span id="pop-msg" >{{style.msg}}</span></div>'
     }
 });
 
@@ -177,6 +193,9 @@ app.directive('popMessage', function($timeout, $window, $compile, $rootScope) {
                     scope.bg = 'bg="' + attr.bg + '"';
                 }
 
+                if (attr.anim) {
+                    scope.anim = 'anim="' + attr.anim + '"';
+                }
                 var newScope = $rootScope.$new(),
                     count = 0,
                     x = angular.element(document.querySelector('pop-message')),
@@ -203,7 +222,7 @@ app.directive('popMessage', function($timeout, $window, $compile, $rootScope) {
                         count++;
                     }
                 }
-                var pmc = $compile('<pop-message-child pos="' + attr.pos + '" ' + scope.bg + ' idx="' + count + '" msg="' + msg + '"></pop-message-child>')(newScope);
+                var pmc = $compile('<pop-message-child txt-col="' + attr.txtCol + '" ' + scope.anim + ' pos="' + attr.pos + '" ' + scope.bg + ' idx="' + count + '" msg="' + msg + '"></pop-message-child>')(newScope);
                 x.append(pmc);
             };
 
