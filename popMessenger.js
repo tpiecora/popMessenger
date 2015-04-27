@@ -125,37 +125,32 @@ app.directive('popMessageChild', function($timeout, $compile) {
 
             if(!attr.anim || attr.anim === 'vslide') {
                 s.animation =
-                    '#' + s.id + ' {' + s.posHStyle + ': 15px; ' + s.posVStyle + ': ' + s.posVVal + 'px; ' +
-                    'opacity: ' + s.opacity + ';} ' +
-                    '#' + s.id + '.ng-hide-add.ng-hide-add-active {transition: 0.75s ease-in all; }'
-                    '#' + s.id + '.ng-hide-remove.ng-hide-remove-active {transition: all linear 0.5s; !important}' +
-                    '#' + s.id + '.ng-hide {' + s.posVStyle + ': ' + s.posHideVal + 'px; opacity: 0;} '
+                    '#' + s.id + ' {' + s.posHStyle + ': 15px; ' + s.posVStyle + ': ' + s.posHideVal + 'px; ' +
+                    'opacity: 0; transition: 0.75s ease-in all;} ' +
+                    //'#' + s.id + '.ng-hide-add.ng-hide-add-active {transition: 0.75s ease-in all; }'
+                    //'#' + s.id + '.ng-hide-remove.ng-hide-remove-active {transition: all linear 0.5s; !important}' +
+                    '#' + s.id + '.show {' + s.posVStyle + ': ' + s.posVVal + 'px; opacity: ' + s.opacity + '; transition: 0.75s ease-in all; } '
             }
 
             if(!attr.anim || attr.anim === 'fade') {
                 s.animation =
                     '#' + s.id + ' {' + s.posHStyle + ': 15px; ' + s.posVStyle + ': ' + s.posVVal + 'px; ' +
-                    'opacity: ' + s.opacity + ';} ' +
-                    '#' + s.id + '.ng-hide-add.ng-hide-add-active {transition: 0.75s ease-in all; }' +
-                    '#' + s.id + '.ng-hide-remove.ng-hide-remove-active {transition: all linear 0.5s; !important}' +
-                    '#' + s.id + '.ng-hide {opacity: 0;} '
+                    'opacity: 0; transition: 0.75s ease-in all; opacity: 0;} ' +
+                    '#' + s.id + '.show {opacity: ' + s.opacity + '; transition: 0.75s ease-out all;}'
             }
             s.styles = s.animation + ' #' + s.id + ' {position: absolute; ' +
             'height: 30px; width: auto;  text-align: center; border-radius: 5px;' +
             'line-height: 30px; ' + s.bgColor + '}' +
             '#pop-msg {padding: 10px; font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;' +
             'vertical-align: middle; margin: auto auto; ' + s.txtColor + '}';
-
-            scope.show = false;
-            scope.animateHelper = '{top: -100; !important}';
+            scope.animator = '';
             $timeout(function() {
-                scope.show = true;
-            scope.$apply();
-            },0);
-            scope.animateHelper = '';
+            scope.animator = 'show';
+
+            },1);
             console.log(s);
             $timeout(function() {
-                scope.show = false;
+                scope.animator = '';
                 $timeout(function () {
                     killMe();
                 }, 750);
@@ -171,7 +166,7 @@ app.directive('popMessageChild', function($timeout, $compile) {
 
 
         '</style>' +
-        '<div ng-style="animateHelper" ng-show="show" id="{{style.id}}"><span id="pop-msg" >{{style.msg}}</span></div>'
+        '<div ng-class="animator" id="{{style.id}}"><span id="pop-msg" >{{style.msg}}</span></div>'
     }
 });
 
