@@ -1,56 +1,14 @@
-/**
- * Created by michaelpiecora on 4/24/15.
- */
-/*
- Dependencies:
- ngAnimate
-
- Setup:
- Add 'PopMessenger' as a dependency in your app.
- Add 'popMsg' as a dependency in your controller.
-
- To Use:
- Insert the directive '<pop-message pos="*position*" show="#></pop-message> into your HTML.
- In your controller, call 'popMsg(msg)' to display a message.
-
- Config:
- The <pop-message> directive can be configured through the following attributes:
- pos: position in the window where you want messages to display.
- 'top-left': pill-style, width: auto, 15px margins
- 'top-right': pill-style, width: auto, 15px margins
- 'bottom-left': pill-style, width: auto, 15px margins
- 'bottom-right': pill-style, width: auto, 15px margins
- 'top': 100% width, no margins
- 'bottom': 100% width, no margins
- Default: bottom-right
-
- show: the time in ms you want messages to display
- Default: 3000
-
- bg: the background color of the message box.  Accepts all standard CSS color designators:
- #444, #00FF00, rgb(100, 100, 100), lightblue, etc.
- Default: lightgray
-
- txt: the color of the message text.  Accepts the same parameters as bg.
- Default: black
-
- alpha: the opacity of the message box and message text.  Accepts 0 through 1:
- 30% = 0.3, 100% = 1, 80% = 0.8
- Default: 0.5
-
-
- */
 
 var app = angular.module('PopMessenger', ['ngAnimate']);
 
-app.controller('MainCtrl', function($scope, popMsg) {
+app.controller('MainCtrl', ["$scope", "pop", function($scope, pop) {
     $scope.message = function (msg) {
-        popMsg(msg);
-        //console.log($scope.msg)
+        pop(msg);
     };
-});
+    $scope.myMsg = "PopMessenger";
+}]);
 
-app.directive('popMessageChild', function($timeout, $compile) {
+app.directive('popMessageChild', ["$timeout", "$compile", function($timeout, $compile) {
     return {
         restrict: 'E',
         scope: {
@@ -61,7 +19,7 @@ app.directive('popMessageChild', function($timeout, $compile) {
             show: '=?',
             txtCol: '=?'
         },
-        link: function(scope, element, attr) {
+        link: function (scope, element, attr) {
             scope.style = {
                 animation: '',
                 bgColor: '',
@@ -84,38 +42,17 @@ app.directive('popMessageChild', function($timeout, $compile) {
 
             s.bgColor = 'background: ' + (attr.bg || 'lightgray') + ';';
 
-            s.position = attr.pos || 'bottom-right';
-            var posArr = s.position.split('-');
+            if (attr.pos == 'undefined') {
+                s.position = 'bottom-right';
+            } else {
+                s.position = attr.pos;
+            }
 
-            console.log(s.position, attr.pos);
+            var posArr = s.position.split('-');
 
             s.posVStyle = posArr[0];
             s.posHStyle = posArr[1];
-            /*
-            //scope.style.posVStyle
-            switch (posArr[0]) {
-                case 'top-left' || 'top-right' || 'top':
-                    s.posVStyle = 'top';
-                    break;
-                case 'bottom-left' || 'bottom-right' || 'bottom':
-                    s.posVStyle = 'bottom';
-                    break;
-                //default:
-                //    s.posVStyle = 'bottom';
-            }
 
-            //scope.style.posHStyle
-            switch (s.position.split('-'))) {
-                case 'top-left' || 'bottom-left':
-                    s.posHStyle = 'left';
-                    break;
-                case 'top-right' || 'bottom-right':
-                    s.posHStyle = 'right';
-                    break;
-                //default:
-                //    s.posHStyle = 'right';
-            }
-            */
             s.posVVal = (parseInt(attr.idx) * 35) + 15;
 
             s.posHideVal = s.posVVal - 40;
@@ -123,33 +60,31 @@ app.directive('popMessageChild', function($timeout, $compile) {
 
             s.txtColor = 'color: ' + (attr.txtCol || 'black') + ';';
 
-            if(!attr.anim || attr.anim === 'vslide') {
+            if (!attr.anim || attr.anim === 'vslide') {
                 s.animation =
                     '#' + s.id + ' {' + s.posHStyle + ': 15px; ' + s.posVStyle + ': ' + s.posHideVal + 'px; ' +
                     'opacity: 0; transition: 0.75s ease-in all;} ' +
-                    //'#' + s.id + '.ng-hide-add.ng-hide-add-active {transition: 0.75s ease-in all; }'
-                    //'#' + s.id + '.ng-hide-remove.ng-hide-remove-active {transition: all linear 0.5s; !important}' +
-                    '#' + s.id + '.show {' + s.posVStyle + ': ' + s.posVVal + 'px; opacity: ' + s.opacity + '; transition: 0.75s ease-in all; } '
+                    '#' + s.id + '.show {' + s.posVStyle + ': ' + s.posVVal + 'px; opacity: ' + s.opacity + '; transition: 0.75s ease-in all; } ';
             }
 
-            if(!attr.anim || attr.anim === 'fade') {
+            if (!attr.anim || attr.anim === 'fade') {
                 s.animation =
                     '#' + s.id + ' {' + s.posHStyle + ': 15px; ' + s.posVStyle + ': ' + s.posVVal + 'px; ' +
                     'opacity: 0; transition: 0.75s ease-in all; opacity: 0;} ' +
-                    '#' + s.id + '.show {opacity: ' + s.opacity + '; transition: 0.75s ease-out all;}'
+                    '#' + s.id + '.show {opacity: ' + s.opacity + '; transition: 0.75s ease-out all;}';
             }
-            s.styles = s.animation + ' #' + s.id + ' {position: absolute; ' +
-            'height: 30px; width: auto;  text-align: center; border-radius: 5px;' +
-            'line-height: 30px; ' + s.bgColor + '}' +
-            '#pop-msg {padding: 10px; font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;' +
-            'vertical-align: middle; margin: auto auto; ' + s.txtColor + '}';
+            s.styles = s.animation + ' #' + s.id + ' {position: fixed; ' +
+                'height: 30px; width: auto;  text-align: center; border-radius: 5px;' +
+                'line-height: 30px; ' + s.bgColor + '}' +
+                '#pop-msg {padding: 10px; font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;' +
+                'vertical-align: middle; margin: auto auto; ' + s.txtColor + '}';
             scope.animator = '';
-            $timeout(function() {
-            scope.animator = 'show';
+            $timeout(function () {
+                scope.animator = 'show';
 
-            },1);
-            console.log(s);
-            $timeout(function() {
+            }, 1);
+            //console.log(s);
+            $timeout(function () {
                 scope.animator = '';
                 $timeout(function () {
                     killMe();
@@ -161,20 +96,24 @@ app.directive('popMessageChild', function($timeout, $compile) {
             };
 
         },
-        template:
-        '<style> {{style.styles}}' +
+        template: '<style> {{style.styles}}' +
 
 
         '</style>' +
         '<div ng-class="animator" id="{{style.id}}"><span id="pop-msg" >{{style.msg}}</span></div>'
-    }
-});
+    };
+}]);
 
-app.directive('popMessage', function($timeout, $window, $compile, $rootScope) {
+app.directive('popMessage', ["$timeout", "$window", "$compile", "$rootScope", function($timeout, $window, $compile, $rootScope) {
     return {
         restrict: 'E',
         scope: {
-            pos: '=?'
+            alpha: '@?',
+            anim: '@?',
+            bg: '@?',
+            pos: '@?',
+            show: '@?',
+            txtCol: '@?'
         },
         link: function (scope, element, attr) {
 
@@ -191,13 +130,17 @@ app.directive('popMessage', function($timeout, $window, $compile, $rootScope) {
                 if (attr.anim) {
                     scope.anim = 'anim="' + attr.anim + '"';
                 }
+
+                if (attr.alpha) {
+                    scope.alpha = 'alpha="' + attr.alpha + '"';
+                }
                 var newScope = $rootScope.$new(),
                     count = 0,
                     x = angular.element(document.querySelector('pop-message')),
                     y = angular.element(document.querySelector('pop-message-child')),
                     z = y.next();
 
-                if(y[0]) {
+                if (y[0]) {
                     var indexes = [], i;
                     indexes.push(y.attr('idx'));
                     for (i = 0; i < 6; i++) {
@@ -207,7 +150,7 @@ app.directive('popMessage', function($timeout, $window, $compile, $rootScope) {
                         }
                     }
                     indexes.sort(function (a, b) {
-                        return a - b
+                        return a - b;
                     });
                     for (i = 0; i < indexes.length; i++) {
                         if (indexes[i] != i) {
@@ -217,36 +160,21 @@ app.directive('popMessage', function($timeout, $window, $compile, $rootScope) {
                         count++;
                     }
                 }
-                var pmc = $compile('<pop-message-child txt-col="' + attr.txtCol + '" ' + scope.anim + ' pos="' + attr.pos + '" ' + scope.bg + ' idx="' + count + '" msg="' + msg + '"></pop-message-child>')(newScope);
+                var pmc = $compile('<pop-message-child txt-col="' + attr.txtCol + '" ' + scope.anim + ' alpha= "' + attr.alpha + '" show="' + attr.show + '" pos="' + attr.pos + '" ' + scope.bg + ' idx="' + count + '" msg="' + msg + '"></pop-message-child>')(newScope);
                 x.append(pmc);
             };
 
             //watch for incoming messages
             scope.$on('popMsg', function (event, msg) {
-                console.log('receiving: ' + msg);
                 popMsg(msg);
-            })
+            });
         }
-    }
-});
+    };
+}]);
 
-app.factory('popMsg', function($rootScope, $injector, $compile) {
-    return function (msg){
+app.factory('pop', ["$rootScope", "$injector", "$compile", function($rootScope, $injector, $compile) {
+    return function (msg) {
         $rootScope.$broadcast('popMsg', msg);
-        /*return function getContainer () {
-         var x = angular.element(document.querySelector('div'));
-         //x.append('<p>I am appended</p>');
+    };
 
-         var scope = $rootScope.$new();
-         var angularDomEl = angular.element('trest');
-
-
-         console.log(x);
-         //return x
-         return $compile(angularDomEl)(scope)    ;
-         }
-         */
-
-    }
-
-});
+}]);
