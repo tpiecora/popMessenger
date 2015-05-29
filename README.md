@@ -20,32 +20,37 @@
 ## Config:
 The <pop-message> directive can be configured through the following attributes:
 
-pos: position in the window where you want messages to display.
+**pos**: position in the window where you want messages to display.
 Accepts:
 - 'top-left'
 - 'top-right'
 - 'bottom-left'
 - 'bottom-right'
-Default: bottom-right
 
-show: the time in ms you want messages to display
-Default: 3000
+**Default**: bottom-right
 
-anim: the style of enter/leave animation.
+**show**: the time in ms you want messages to display
+
+**Default**: 3000
+
+**anim**: the style of enter/leave animation.
 Accepts:
 - 'vslide': slide/fade in an out vertically
 - 'fade': only fade in and out
-Default: vslide
 
-bg: the background color of the message box.  Accepts CSS Color Names and rgb:
+**Default**: vslide
+
+**bg**: the background color of the message box.  Accepts CSS Color Names and rgb:
 rgb(100, 100, 100), lightblue.
-Default: lightgray
 
-txt-col: the color of the message text.  Accepts the same parameters as bg.
-Default: black
+**Default**: lightgray
 
-alpha: the opacity of the message box and message text.  Accepts 0 through 1:
+**txt-col**: the color of the message text.  Accepts the same parameters as bg.
+
+**Default**: black
+
+**alpha**: the opacity of the message box and message text.  Accepts 0 through 1:
 30% = 0.3, 100% = 1, 80% = 0.8
-Default: 0.5
+**Default**: 0.5
 
 [Demo](http://plnkr.co/edit/3GH3Iznr3JDeLqGna9DB?p=preview)
