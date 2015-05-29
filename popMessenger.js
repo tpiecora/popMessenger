@@ -1,4 +1,3 @@
-
 var app = angular.module('PopMessenger', ['ngAnimate']);
 
 app.controller('MainCtrl', ["$scope", "pop", function($scope, pop) {
